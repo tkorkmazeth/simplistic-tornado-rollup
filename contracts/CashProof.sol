@@ -1,15 +1,23 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/interfaces/IERC165.sol";
+
 import "./helpers/Structs.sol";
+import "./helpers/Errors.sol";
+import "./interfaces/IERC20.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract CashProof is Struct {
-    address private owner;
+contract CashProof is Struct, Error, ReentrancyGuard, Ownable {
     Metadata private metadata;
+    Asset[] public assets;
+
     uint256 public recipientCount;
+    uint256 public expiryTimeStamp;
 
     /* MAPPINGS */
     mapping(address => bool) public isRecipient;
@@ -25,10 +33,15 @@ contract CashProof is Struct {
         string memory _recipientName,
         address _recipientAddress,
         string memory _cid,
-        string memory _network
-    ) {
-        // Constructor to initialize the contract
-        owner = msg.sender;
+        string memory _network,
+        uint256 _expiryTimeStamp
+    ) Ownable(msg.sender) {
+        if (_expiryTimeStamp <= block.timestamp) {
+            revert InvalidDate(_expiryTimeStamp);
+        }
+        expiryTimeStamp = _expiryTimeStamp;
+        _transferOwnership(msg.sender);
+
         metadata = Metadata(
             msg.sender,
             _network,
@@ -44,15 +57,25 @@ contract CashProof is Struct {
         );
     }
 
-    // get owner
-    function getOwner() public view returns (address) {
-        return owner;
+    /* READ ONLY */
+
+    function getMetadata() public view returns (Metadata memory) {
+        return metadata;
     }
 
+    /* READ ONLY */
+
+    /* STATE CHANGERS */
     function validate(
         string memory _attestationId
     ) public returns (Metadata memory) {
-        // verify address
+        if (!isRecipient[msg.sender]) {
+            revert OnlyRecipient();
+        }
+
+        if (block.timestamp > expiryTimeStamp) {
+            revert Expired();
+        }
         // get balance of sender
         uint256 balance = address(msg.sender).balance;
         uint256 targetBalance = metadata.balance;
@@ -73,8 +96,29 @@ contract CashProof is Struct {
         return metadata;
     }
 
-    // get metadata
-    function getMetadata() public view returns (Metadata memory) {
-        return metadata;
+    function addRecipient(address _recipient) external onlyOwner {
+        isRecipient[_recipient] = true;
+        recipientCount++;
     }
+
+    function addAsset(
+        address _tokenAddress,
+        uint256 amount
+    ) external onlyOwner {
+        assets.push(Asset(_tokenAddress, amount));
+    }
+
+    function validateAssets() public view {
+        for (uint256 i = 0; i < assets.length; i++) {
+            uint256 balance = IERC20(assets[i].tokenAddress).balanceOf(
+                msg.sender
+            );
+            require(
+                balance >= assets[i].amount,
+                "Insufficient balance for asset"
+            );
+        }
+    }
+
+    /* STATE CHANGERS */
 }
