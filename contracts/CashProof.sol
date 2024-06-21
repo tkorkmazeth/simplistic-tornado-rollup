@@ -121,4 +121,13 @@ contract CashProof is Struct, Error, ReentrancyGuard, Ownable {
     }
 
     /* STATE CHANGERS */
+
+    /* INTERNAL FUNCS */
+    function _supportsInterface(
+        address _addr,
+        bytes4 iface
+    ) internal view returns (bool) {
+        return IERC165(_addr).supportsInterface(iface);
+    }
+    /* INTERNAL FUNCS */
 }
