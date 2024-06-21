@@ -83,4 +83,4 @@ The idea for CashProof emerged from the need for a reliable method to verify pro
 
 ---
 
-This `README.md` provides a comprehensive overview of CashProof, highlighting its features, technologies used, and the process for generating and verifying proof of funds. Front end of this application and additional progress is still in progress. The final project is gonna include all of described features.
+Front end of this application and additional progress is still in progress. The final project is gonna include all of described features.
