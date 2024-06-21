@@ -1,0 +1,26 @@
+{
+  "name": "simplistic-tornado-rollup",
+  "version": "1.0.0",
+  "description": "proof of fund requests",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tkorkmazeth/simplistic-tornado-rollup.git"
+  },
+  "keywords": [
+    "rollup"
+  ],
+  "author": "tkorkmazeth",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tkorkmazeth/simplistic-tornado-rollup/issues"
+  },
+  "homepage": "https://github.com/tkorkmazeth/simplistic-tornado-rollup#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.5"
+  }
+}
