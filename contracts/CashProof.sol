@@ -8,11 +8,12 @@ import "@openzeppelin/contracts/interfaces/IERC165.sol";
 import "./helpers/Structs.sol";
 import "./helpers/Errors.sol";
 import "./interfaces/IERC20.sol";
+import "./helpers/Events.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract CashProof is Struct, Error, ReentrancyGuard, Ownable {
+contract CashProof is Struct, Error, Events, ReentrancyGuard, Ownable {
     Metadata private metadata;
     Asset[] public assets;
 
@@ -23,8 +24,15 @@ contract CashProof is Struct, Error, ReentrancyGuard, Ownable {
     mapping(address => bool) public isRecipient;
     /* MAPPINGS */
 
-    // Event to log balance verification
-    event FundVerified(address verifier, uint256 balance, string attestationId);
+    /* MODIFIERS */
+    modifier checkZeroAddress(address addressToValidate) {
+        if (addressToValidate == address(0)) {
+            revert InvalidAddress(addressToValidate);
+        }
+        _;
+    }
+
+    /* MODIFIERS */
 
     constructor(
         string memory _name,
@@ -40,7 +48,7 @@ contract CashProof is Struct, Error, ReentrancyGuard, Ownable {
             revert InvalidDate(_expiryTimeStamp);
         }
         expiryTimeStamp = _expiryTimeStamp;
-        _transferOwnership(msg.sender);
+        transferOwnership(msg.sender);
 
         metadata = Metadata(
             msg.sender,
@@ -96,7 +104,12 @@ contract CashProof is Struct, Error, ReentrancyGuard, Ownable {
         return metadata;
     }
 
-    function addRecipient(address _recipient) external onlyOwner {
+    function addRecipient(
+        address _recipient
+    ) external onlyOwner checkZeroAddress(_recipient) {
+        if (isRecipient[_recipient]) {
+            revert AlreadyAdded(_recipient);
+        }
         isRecipient[_recipient] = true;
         recipientCount++;
     }
@@ -104,7 +117,7 @@ contract CashProof is Struct, Error, ReentrancyGuard, Ownable {
     function addAsset(
         address _tokenAddress,
         uint256 amount
-    ) external onlyOwner {
+    ) external onlyOwner checkZeroAddress(_tokenAddress) {
         assets.push(Asset(_tokenAddress, amount));
     }
 
@@ -122,12 +135,5 @@ contract CashProof is Struct, Error, ReentrancyGuard, Ownable {
 
     /* STATE CHANGERS */
 
-    /* INTERNAL FUNCS */
-    function _supportsInterface(
-        address _addr,
-        bytes4 iface
-    ) internal view returns (bool) {
-        return IERC165(_addr).supportsInterface(iface);
-    }
     /* INTERNAL FUNCS */
 }

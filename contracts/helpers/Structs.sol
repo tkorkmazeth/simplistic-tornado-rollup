@@ -20,4 +20,12 @@ interface Struct {
         address tokenAddress;
         uint256 amount;
     }
+
+    struct Request {
+        address requester;
+        address recipient;
+        uint256 amount;
+        uint256 timestamp;
+        bool validated;
+    }
 }

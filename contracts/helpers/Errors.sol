@@ -6,4 +6,8 @@ interface Error {
     error OnlyOwner();
     error OnlyRecipient();
     error Expired();
+    error InvalidAddress(address failedAddress);
+    error AlreadyAdded(address recipient);
+    error AlreadyValidated(bytes32 requestId);
+    error InsufficientBalance();
 }
